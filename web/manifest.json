@@ -1,6 +1,6 @@
 {
-    "name": "flutter_web_auth",
-    "short_name": "flutter_web_auth",
+    "name": "flutter_openid_web",
+    "short_name": "flutter_openid_web",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

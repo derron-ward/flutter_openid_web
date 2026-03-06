@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_web_auth/flutter_web_auth.dart';
+import 'package:flutter_openid_web/flutter_openid_web.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await FlutterWebAuth.initialize();
+  await FlutterOpenidWeb.initialize();
 
   runApp(MyApp());
 }
@@ -24,9 +24,9 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    authState = FlutterWebAuth.instance.currentState;
+    authState = FlutterOpenidWeb.instance.currentState;
 
-    authSubscription = FlutterWebAuth.instance.authStateChanges.listen((state) {
+    authSubscription = FlutterOpenidWeb.instance.authStateChanges.listen((state) {
       setState(() => authState = state);
     });
   }
@@ -53,7 +53,7 @@ class _MyAppState extends State<MyApp> {
         'api'
       ]
     );
-    FlutterWebAuth.instance.authenticateAndExchangeCode(request);
+    FlutterOpenidWeb.instance.authenticateAndExchangeCode(request);
   }
 
   void logout() async {
@@ -69,7 +69,7 @@ class _MyAppState extends State<MyApp> {
       clientId: 'interactive.public',
       redirectUri: redirect,
     );
-    FlutterWebAuth.instance.endSession(request);
+    FlutterOpenidWeb.instance.endSession(request);
   }
 
   @override

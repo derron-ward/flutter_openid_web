@@ -8,19 +8,19 @@ import 'helpers/helpers.dart';
 import 'models/models.dart';
 
 enum SessionStorageNames {
-  codeVerifier('flutter_web_auth_code_verifier'),
-  state('flutter_web_auth_oidc_state'),
-  authRequest('flutter_web_auth_auth_request'),
-  endSessionRequest('flutter_web_auth_end_session_request');
+  codeVerifier('flutter_openid_web_code_verifier'),
+  state('flutter_openid_web_oidc_state'),
+  authRequest('flutter_openid_web_auth_request'),
+  endSessionRequest('flutter_openid_web_end_session_request');
 
   final String key;
   const SessionStorageNames(this.key);
 }
 
-class FlutterWebAuth {
-  static FlutterWebAuth? _instance;
-  static FlutterWebAuth get instance {
-    assert(_instance != null, 'FlutterWebAuth.initialize() must be called first.');
+class FlutterOpenidWeb {
+  static FlutterOpenidWeb? _instance;
+  static FlutterOpenidWeb get instance {
+    assert(_instance != null, 'FlutterOpenidWeb.initialize() must be called first.');
     return _instance!;
   }
 
@@ -30,13 +30,13 @@ class FlutterWebAuth {
   AuthState _currentState = AuthState.unauthenticated();
   AuthState get currentState => _currentState;
 
-  FlutterWebAuth();
+  FlutterOpenidWeb();
 
-  /// Initializes `FlutterWebAuth` with the given configuration
+  /// Initializes `FlutterOpenidWeb` with the given configuration
   /// 
   /// Trys to handle an OIDC redirect if present
   static Future<void> initialize() async {
-    final client = FlutterWebAuth();
+    final client = FlutterOpenidWeb();
     _instance = client;
 
     await client._boot();

@@ -1,4 +1,4 @@
-# Flutter Web Auth
+# Flutter OpenId Web
 
 A Flutter package for web-based OpenID Connect (OIDC) authentication using the Authorization Code Flow with PKCE. Built for Flutter Web, it handles the full auth lifecycle — redirects, token exchange, token refresh, and session termination.
 
@@ -21,7 +21,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  flutter_web_auth: ^1.0.0
+  flutter_openid_web: ^1.0.0
 ```
 
 Then run:
@@ -36,12 +36,12 @@ flutter pub get
 
 ### 1. Initialize
 
-Call `FlutterWebAuth.initialize()` once at app startup, **before** `runApp()`. This sets up the singleton and automatically handles any OIDC redirect that may be present in the URL.
+Call `FlutterOpenidWeb.initialize()` once at app startup, **before** `runApp()`. This sets up the singleton and automatically handles any OIDC redirect that may be present in the URL.
 
 ```dart
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await FlutterWebAuth.initialize();
+  await FlutterOpenidWeb.initialize();
   runApp(const MyApp());
 }
 ```
@@ -51,7 +51,7 @@ void main() async {
 After initialization, access the singleton anywhere in your app:
 
 ```dart
-final auth = FlutterWebAuth.instance;
+final auth = FlutterOpenidWeb.instance;
 ```
 
 ---
@@ -63,7 +63,7 @@ final auth = FlutterWebAuth.instance;
 Subscribe to the `authStateChanges` stream to reactively respond to login, logout, and error events:
 
 ```dart
-FlutterWebAuth.instance.authStateChanges.listen((state) {
+FlutterOpenidWeb.instance.authStateChanges.listen((state) {
   if (state.isAuthenticated) {
     print('Authenticated: ${state.tokens}');
   } else if (state.isError) {
@@ -77,7 +77,7 @@ FlutterWebAuth.instance.authStateChanges.listen((state) {
 You can also read the current state synchronously:
 
 ```dart
-final currentState = FlutterWebAuth.instance.currentState;
+final currentState = FlutterOpenidWeb.instance.currentState;
 ```
 
 ### Sign In
@@ -95,7 +95,7 @@ final request = AuthRequest(
   ),
 );
 
-await FlutterWebAuth.instance.authenticateAndExchangeCode(request);
+await FlutterOpenidWeb.instance.authenticateAndExchangeCode(request);
 // User is redirected to the provider — no code needed after this line.
 ```
 
@@ -104,7 +104,7 @@ await FlutterWebAuth.instance.authenticateAndExchangeCode(request);
 Use `refreshTokens` to silently obtain new tokens using a stored refresh token:
 
 ```dart
-final refreshed = await FlutterWebAuth.instance.refreshTokens(
+final refreshed = await FlutterOpenidWeb.instance.refreshTokens(
   RefreshTokenRequest(
     clientId: 'your-client-id',
     refreshToken: storedRefreshToken,
@@ -123,7 +123,7 @@ print('New access token: ${refreshed.accessToken}');
 Call `endSession` to redirect the user to the provider's end session endpoint. The auth state is automatically set to `unauthenticated` when the user returns.
 
 ```dart
-await FlutterWebAuth.instance.endSession(
+await FlutterOpenidWeb.instance.endSession(
   EndSessionRequest(
     clientId: 'your-client-id',
     idToken: storedIdToken,

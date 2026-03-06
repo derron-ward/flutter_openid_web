@@ -1,4 +1,4 @@
-export 'src/flutter_web_auth.dart';
+export 'src/flutter_openid_web.dart';
 export 'src/models/models.dart'
   show AuthServiceConfiguration,
        AuthRequest,
