@@ -1,6 +1,7 @@
 name: flutter_web_auth
 description: This package handles OpenID Connect authentication handling on Web
 version: 1.0.0
+homepage: https://github.com/derron-ward/flutter_web_auth
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
