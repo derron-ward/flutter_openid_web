@@ -25,4 +25,24 @@ class TokenResponse {
       scopes: (json['scope'] as String? ?? '').split(' ')
     );
   }
+
+  factory TokenResponse.fromStorageJson(Map<String, dynamic> json) {
+    return TokenResponse(
+      accessToken: json['accessToken'] as String,
+      refreshToken: json['refreshToken'] as String?,
+      idToken: json['idToken'] as String?,
+      expiresAt: DateTime.parse(json['expiresAt'] as String),
+      scopes: (json['scope'] as String? ?? '').split(' ')
+    );
+  }
+
+  Map<String, dynamic> toStorageJson() {
+    return {
+      'accessToken': accessToken,
+      'refreshToken': refreshToken,
+      'idToken': idToken,
+      'expiresAt': expiresAt.toIso8601String(),
+      'scopes': scopes.join(' ')
+    };
+  }
 }

@@ -11,7 +11,8 @@ enum SessionStorageNames {
   codeVerifier('flutter_openid_web_code_verifier'),
   state('flutter_openid_web_oidc_state'),
   authRequest('flutter_openid_web_auth_request'),
-  endSessionRequest('flutter_openid_web_end_session_request');
+  endSessionRequest('flutter_openid_web_end_session_request'),
+  authSession('flutter_openid_web_auth_session');
 
   final String key;
   const SessionStorageNames(this.key);
@@ -43,8 +44,12 @@ class FlutterOpenidWeb {
   }
 
   Future<void> _boot() async {
-    if (kIsWeb) {
-      await _tryHandleRedirect();
+    if (!kIsWeb) return;
+    
+    final handled = await _tryHandleRedirect();
+
+    if (!handled) {
+      await _tryRestoreSession();
     }
   }
 
@@ -138,6 +143,8 @@ class FlutterOpenidWeb {
       },
     );
 
+    WebUtils.removeLocalValue(SessionStorageNames.authSession.key);
+
     WebUtils.redirect(endSessionUri.toString());
   }
 
@@ -213,6 +220,13 @@ class FlutterOpenidWeb {
 
     try {
       final tokens = await _exchangeCodeForTokens(code: code!, codeVerifier: codeVerifier, request: request);
+
+      final stateToStore = {
+        'tokens': tokens.toStorageJson(),
+        'request': request.toJson()
+      };
+      WebUtils.setLocalValue(SessionStorageNames.authSession.key, jsonEncode(stateToStore));
+
       _emit(AuthState.authenticated(tokens));
     }
     catch (err) {
@@ -220,6 +234,32 @@ class FlutterOpenidWeb {
     }
 
     return true;
+  }
+
+  Future<void> _tryRestoreSession() async {
+    final storedSessionString = WebUtils.getLocalValue(SessionStorageNames.authSession.key);
+    if (storedSessionString == null) return;
+
+    final storedSessionJson = jsonDecode(storedSessionString);
+    final tokens = TokenResponse.fromStorageJson(storedSessionJson['tokens']);
+    final request = AuthRequest.fromJson(storedSessionJson['request']);
+
+    if (tokens.idToken == null || tokens.refreshToken == null) return;
+
+    // Refresh the access token
+    try {
+      final newTokens = await refreshTokens(RefreshTokenRequest(
+        idToken: tokens.idToken!,
+        clientId: request.clientId,
+        refreshToken: tokens.refreshToken!,
+        serviceConfiguration: request.serviceConfiguration
+      ));
+
+      _emit(AuthState.authenticated(newTokens));
+    }
+    catch (err) {
+      _emit(AuthState.error('Restored a saved session, but failed to refresh access token'));
+    }
   }
 
   Future<TokenResponse> _exchangeCodeForTokens({

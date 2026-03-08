@@ -18,4 +18,13 @@ class WebUtils {
 
   static void removeSessionValue(String key) =>
     web.window.sessionStorage.removeItem(key);
+
+    static void setLocalValue(String key, String value) =>
+    web.window.localStorage.setItem(key, value);
+
+  static String? getLocalValue(String key) =>
+    web.window.localStorage.getItem(key);
+
+  static void removeLocalValue(String key) =>
+    web.window.localStorage.removeItem(key);
 }
