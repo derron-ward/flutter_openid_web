@@ -137,6 +137,20 @@ await FlutterOpenidWeb.instance.endSession(
 );
 ```
 
+### Persisting Auth State
+By default, Auth state is persisted across sessions using local storage. If you do not want the package to persist automatically, initialize the instance with the `persistState` config value set to `false`
+```dart
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await FlutterOpenidWeb.initialize(FlutterOpenidWebConfig(
+    persistState: false
+  ));
+
+  runApp(MyApp());
+}
+```
+
 ---
 
 ## Auth State
