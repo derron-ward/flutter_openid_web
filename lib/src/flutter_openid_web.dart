@@ -18,6 +18,14 @@ enum SessionStorageNames {
   const SessionStorageNames(this.key);
 }
 
+class FlutterOpenidWebConfig {
+  final bool persistState;
+
+  const FlutterOpenidWebConfig({
+    this.persistState = true
+  });
+}
+
 class FlutterOpenidWeb {
   static FlutterOpenidWeb? _instance;
   static FlutterOpenidWeb get instance {
@@ -25,19 +33,21 @@ class FlutterOpenidWeb {
     return _instance!;
   }
 
+  FlutterOpenidWebConfig config;
+
   final _authStateController = StreamController<AuthState>.broadcast();
   Stream<AuthState> get authStateChanges => _authStateController.stream;
 
   AuthState _currentState = AuthState.unauthenticated();
   AuthState get currentState => _currentState;
 
-  FlutterOpenidWeb();
+  FlutterOpenidWeb([this.config = const FlutterOpenidWebConfig()]);
 
   /// Initializes `FlutterOpenidWeb` with the given configuration
   /// 
   /// Trys to handle an OIDC redirect if present
-  static Future<void> initialize() async {
-    final client = FlutterOpenidWeb();
+  static Future<void> initialize([FlutterOpenidWebConfig config = const FlutterOpenidWebConfig()]) async {
+    final client = FlutterOpenidWeb(config);
     _instance = client;
 
     await client._boot();
@@ -48,7 +58,7 @@ class FlutterOpenidWeb {
     
     final handled = await _tryHandleRedirect();
 
-    if (!handled) {
+    if (!handled && config.persistState) {
       await _tryRestoreSession();
     }
   }
@@ -221,11 +231,13 @@ class FlutterOpenidWeb {
     try {
       final tokens = await _exchangeCodeForTokens(code: code!, codeVerifier: codeVerifier, request: request);
 
-      final stateToStore = {
-        'tokens': tokens.toStorageJson(),
-        'request': request.toJson()
-      };
-      WebUtils.setLocalValue(SessionStorageNames.authSession.key, jsonEncode(stateToStore));
+      if (config.persistState) {
+        final stateToStore = {
+          'tokens': tokens.toStorageJson(),
+          'request': request.toJson()
+        };
+        WebUtils.setLocalValue(SessionStorageNames.authSession.key, jsonEncode(stateToStore));
+      }
 
       _emit(AuthState.authenticated(tokens));
     }
@@ -248,14 +260,25 @@ class FlutterOpenidWeb {
 
     // Refresh the access token
     try {
-      final newTokens = await refreshTokens(RefreshTokenRequest(
-        idToken: tokens.idToken!,
-        clientId: request.clientId,
-        refreshToken: tokens.refreshToken!,
-        serviceConfiguration: request.serviceConfiguration
-      ));
+      if (tokens.isExpired) {
+        final newTokens = await refreshTokens(RefreshTokenRequest(
+          idToken: tokens.idToken!,
+          clientId: request.clientId,
+          refreshToken: tokens.refreshToken!,
+          serviceConfiguration: request.serviceConfiguration
+        ));
 
-      _emit(AuthState.authenticated(newTokens));
+        final stateToStore = {
+          'tokens': newTokens.toStorageJson(),
+          'request': request.toJson()
+        };
+        WebUtils.setLocalValue(SessionStorageNames.authSession.key, jsonEncode(stateToStore));
+
+        _emit(AuthState.authenticated(newTokens));
+      }
+      else {
+        _emit(AuthState.authenticated(tokens));
+      }
     }
     catch (err) {
       _emit(AuthState.error('Restored a saved session, but failed to refresh access token'));
