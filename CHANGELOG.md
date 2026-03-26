@@ -1,3 +1,6 @@
+## 1.1.1
+* Added redirect handling flag
+
 ## 1.1.0
 * Implemented persistence of auth state on close and page reload
 * Auth state is stored in local storage
