@@ -41,6 +41,8 @@ class FlutterOpenidWeb {
   AuthState _currentState = AuthState.unauthenticated();
   AuthState get currentState => _currentState;
 
+  bool isHandlingRedirect = false;
+
   FlutterOpenidWeb([this.config = const FlutterOpenidWebConfig()]);
 
   /// Initializes `FlutterOpenidWeb` with the given configuration
@@ -56,7 +58,9 @@ class FlutterOpenidWeb {
   Future<void> _boot() async {
     if (!kIsWeb) return;
     
+    isHandlingRedirect = true;
     final handled = await _tryHandleRedirect();
+    isHandlingRedirect = false;
 
     if (!handled && config.persistState) {
       await _tryRestoreSession();
